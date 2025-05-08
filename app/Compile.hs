@@ -11,6 +11,7 @@ import Compile.Semantic (semanticAnalysis)
 import Compile.VarAlloc (replaceVars)
 import Control.Monad.IO.Class
 import Error (L1ExceptT)
+import System.Process (readProcess)
 
 data Job = Job
   { src :: FilePath,
@@ -23,5 +24,5 @@ compile job = do
   ast <- parseAST $ src job
   semanticAnalysis ast
   let code = genAsm $ replaceVars $ codeGen ast
-  liftIO $ writeFile (out job) (unlines code)
+  _ <- liftIO $ readProcess "gcc" ["-x", "assembler", "-o", out job, "-"] (unlines code)
   return ()
