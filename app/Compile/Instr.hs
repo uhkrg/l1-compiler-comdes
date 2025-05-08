@@ -7,7 +7,7 @@ data Instruction = Instruction
 
 data Arguments = EmptyArgument | SingleArgument Argument | Arguments {source :: Argument, target :: Argument}
 
-data Argument = ArgumentVariable Integer | ArgumentRegister Register | ArgumentConstant String
+data Argument = ArgumentVariable Integer | ArgumentRegister Register | ArgumentConstant String | ArgumentMemory Integer
   deriving (Show)
 
 data Register = RegEAX | RegEBX | RegECX | RegEDX | RegESI | RegEDI | RegESP | RegEBP | RegR8D | RegR9D | RegR10D | RegR11D | RegR12D | RegR13D | RegR14D | RegR15D
