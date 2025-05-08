@@ -95,7 +95,8 @@ genDiv op dividend divisor targ = do
     ArgumentConstant _ -> ArgumentVariable <$> nextVar
     x -> pure x
   case divisor of
-    ArgumentConstant c -> emit Instruction {instr = "MOV", args = Arguments {source = divisor, target = divisorVar}}
+    ArgumentConstant _ -> emit Instruction {instr = "MOV", args = Arguments {source = divisor, target = divisorVar}}
+    _ -> pure ()
   emit Instruction {instr = "CDQ", args = EmptyArgument}
   emit Instruction {instr = "IDIV", args = SingleArgument divisorVar}
   emit Instruction {instr = "MOV", args = Arguments {source = ArgumentRegister ret, target = targ}}
