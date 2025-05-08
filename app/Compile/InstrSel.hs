@@ -6,7 +6,6 @@ where
 import Compile.AST (AST (..), Expr (..), Op (..), Stmt (..))
 import Compile.Instr (Argument (..), Arguments (..), Instruction (..), Register (..))
 import Control.Monad.State
-import Data.Functor ((<$>))
 import Data.Map as Map
 import Data.Maybe (fromJust)
 
@@ -39,13 +38,13 @@ assignVar :: String -> Integer -> CodeGen ()
 assignVar name var = modify $ \s -> s {varMap = Map.insert name var $ varMap s}
 
 emit :: Instruction -> CodeGen ()
-emit instr = modify $ \s -> s {code = code s ++ [instr]}
+emit inst = modify $ \s -> s {code = code s ++ [inst]}
 
 genBlock :: [Stmt] -> CodeGen ()
 genBlock = mapM_ genStmt
 
 genStmt :: Stmt -> CodeGen ()
-genStmt (Decl var _) = pure ()
+genStmt (Decl _var _) = pure ()
 genStmt (Init var expr _) = do
   res <- genExpr expr
   assignedVar <- nextVar
@@ -59,6 +58,8 @@ genStmt (Asgn var asgnOp expr _) = do
   let varArg = ArgumentVariable assignedVar
   case asgnOp of
     Nothing -> emit Instruction {instr = "MOV", args = Arguments {source = res, target = varArg}}
+    Just Div -> genDiv Div (ArgumentVariable oldVar) res varArg
+    Just Mod -> genDiv Mod (ArgumentVariable oldVar) res varArg
     Just op -> emit Instruction {instr = "MOV", args = Arguments {source = ArgumentVariable oldVar, target = varArg}} >> genOp op res varArg
 genStmt (Ret expr _) = do
   res <- genExpr expr
@@ -81,17 +82,34 @@ genExpr (BinExpr op expr1 expr2) = do
   arg1 <- genExpr expr1
   arg2 <- genExpr expr2
   res <- ArgumentVariable <$> nextVar
-  emit Instruction {instr = "MOV", args = Arguments {source = arg1, target = res}}
-  genOp op arg2 res
+  case op of
+    Div -> genDiv Div arg1 arg2 res
+    Mod -> genDiv Mod arg1 arg2 res
+    _ -> emit Instruction {instr = "MOV", args = Arguments {source = arg1, target = res}} >> genOp op arg2 res
   return res
 
+genDiv :: Op -> Argument -> Argument -> Argument -> CodeGen ()
+genDiv op dividend divisor targ = do
+  emit Instruction {instr = "MOV", args = Arguments {source = dividend, target = ArgumentRegister RegEAX}}
+  divisorVar <- case divisor of
+    ArgumentConstant _ -> ArgumentVariable <$> nextVar
+    x -> pure x
+  case divisor of
+    ArgumentConstant c -> emit Instruction {instr = "MOV", args = Arguments {source = divisor, target = divisorVar}}
+  emit Instruction {instr = "CDQ", args = EmptyArgument}
+  emit Instruction {instr = "IDIV", args = SingleArgument divisorVar}
+  emit Instruction {instr = "MOV", args = Arguments {source = ArgumentRegister ret, target = targ}}
+  where
+    ret = case op of
+      Div -> RegEAX
+      Mod -> RegEDX
+      x -> error $ "Unreachable \"" ++ show x ++ "\" is not a supported division op"
+
 genOp :: Op -> Argument -> Argument -> CodeGen ()
-genOp op source target = emit Instruction {instr = asmOp, args = Arguments {source = source, target = target}}
+genOp op sourc targ = emit Instruction {instr = asmOp, args = Arguments {source = sourc, target = targ}}
   where
     asmOp = case op of
       Mul -> "MUL"
       Add -> "ADD"
       Sub -> "SUB"
-      Div -> "DIV"
-      Mod -> "MOD"
-      x -> error $ "Unreachable \"" ++ show x ++ "\" is not a binOp"
+      x -> error $ "Unreachable \"" ++ show x ++ "\" is not supported op"
