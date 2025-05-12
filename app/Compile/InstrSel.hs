@@ -110,7 +110,7 @@ genOp :: Op -> Argument -> Argument -> CodeGen ()
 genOp op sourc targ = emit Instruction {instr = asmOp, args = Arguments {source = sourc, target = targ}}
   where
     asmOp = case op of
-      Mul -> "MUL"
+      Mul -> "IMUL"
       Add -> "ADD"
       Sub -> "SUB"
       x -> error $ "Unreachable \"" ++ show x ++ "\" is not supported op"
