@@ -26,7 +26,8 @@ executable l1c
                   optparse-applicative >= 0.18.1.0,
                   parser-combinators,
                   transformers,
-                  process
+                  process,
+                  array
     other-modules:
                   Args,
                   Compile,
@@ -37,6 +38,7 @@ executable l1c
                   Compile.Instr,
                   Compile.VarAlloc,
                   Compile.Asm,
+                  Compile.IR,
                   Error
     hs-source-dirs:   app
     default-language: Haskell2010
