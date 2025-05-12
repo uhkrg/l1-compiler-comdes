@@ -76,7 +76,7 @@ translateStmt (AST.Asgn var (Just op) e _) = do
             res <- nextVar
             translateExpr res e'
             emit $ Var vNew :<-: (Variable $ Var v, translateBinOp op, Variable $ Var res)
-    assignVar var v
+    assignVar var vNew
 
 translateStmt (AST.Ret e _) = do
     case e of
