@@ -116,7 +116,7 @@ identExpr = do
 
 opTable :: [[Operator Parser Expr]]
 opTable =
-  [ [Prefix (UnExpr Neg <$ manyUnaryOp)]
+  [ [Prefix manyUnaryOp]
   , [ InfixL (BinExpr Mul <$ symbol "*")
     , InfixL (BinExpr Div <$ symbol "/")
     , InfixL (BinExpr Mod <$ symbol "%")
