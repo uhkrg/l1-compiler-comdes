@@ -14,6 +14,7 @@ genStmt (Ret val) = unlines
     [ "mov " ++ genVal val ++ ", %eax"
     , "ret"
     ]
+genStmt (v :|<-: val) = "movl " ++ genVal val ++ ", " ++ genVar v
 genStmt (v :<-: (val1, Div, val2)) = unlines
     [ "mov " ++ genVal val1 ++ ", %eax"
     , "mov " ++ genVal val2 ++ ", %ebx"
@@ -33,7 +34,7 @@ genStmt (v :<-: (val1, op, val2)) = unlines
     , genOp op ++ ' ' : genVal val2 ++ ", %eax"
     , "mov " ++ "%eax, " ++ genVar v
     ]
-genStmt (v :<-^: (unop, val)) = unlines
+genStmt (v :<-^: (Neg, val)) = unlines
     [ "movl " ++ genVal val ++ ", " ++  genVar v
     , "negl " ++ genVar v
     ]

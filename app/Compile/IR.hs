@@ -7,7 +7,7 @@ import qualified Data.Map as Map
 import Data.Maybe (fromJust)
 
 type IR = Array Integer IRStatement
-data IRStatement = Ret ValueContainer | Var :<-: (ValueContainer, Op, ValueContainer) | Var :<-^: (UnOp, ValueContainer)
+data IRStatement = Ret ValueContainer | Var :|<-: ValueContainer | Var :<-: (ValueContainer, Op, ValueContainer) | Var :<-^: (UnOp, ValueContainer)
 
 data ValueContainer = Variable Var | Constant Integer
 
@@ -56,12 +56,22 @@ translateStmt (AST.Decl _var _) = pure ()
 
 translateStmt (AST.Init var e _) = do
     v <- nextVar
-    translateExpr v e
+    case e of
+        AST.IntExpr val _ -> emit $ Var v :|<-: Constant (read val)
+        AST.Ident v2 _ -> do
+            v2' <- lookupVar v2
+            emit $ Var v :|<-: Variable (Var v2')
+        e' -> translateExpr v e'
     assignVar var v
 
 translateStmt (AST.Asgn var Nothing e _) = do
     v <- nextVar
-    translateExpr v e
+    case e of
+        AST.IntExpr val _ -> emit $ Var v :|<-: Constant (read val)
+        AST.Ident v2 _ -> do
+            v2' <- lookupVar v2
+            emit $ Var v :|<-: Variable (Var v2')
+        e' -> translateExpr v e'
     assignVar var v
 
 translateStmt (AST.Asgn var (Just op) e _) = do
@@ -141,6 +151,7 @@ translateUnOp op = case op of
 
 instance Show IRStatement where
     show (Ret v) = "return " ++ show v
+    show ((:|<-:) v v2) = show v ++ " <- " ++ show v2
     show ((:<-:) v (v2, op, v3)) = show v ++ " <- " ++ show v2 ++ " " ++  show op ++ " " ++ show v3
     show ((:<-^:) v (op, v2)) = show v ++ " <- " ++ show op ++ show v2
 
