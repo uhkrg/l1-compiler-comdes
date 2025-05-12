@@ -14,6 +14,10 @@ genStmt (Ret val) = unlines
     [ "mov " ++ genVal val ++ ", %eax"
     , "ret"
     ]
+genStmt (v :|<-: (Variable var)) = unlines
+    [ "mov " ++  genVar var ++ ", %eax"
+    , "mov " ++ "%eax, " ++ genVar v
+    ]
 genStmt (v :|<-: val) = "movl " ++ genVal val ++ ", " ++ genVar v
 genStmt (v :<-: (val1, Div, val2)) = unlines
     [ "mov " ++ genVal val1 ++ ", %eax"
