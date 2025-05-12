@@ -11,6 +11,7 @@ import Compile.IR (translateAST)
 import Control.Monad.IO.Class
 import Error (L1ExceptT)
 import Data.Array (elems)
+import System.Process (readProcess)
 
 data Job = Job
   { src :: FilePath,
@@ -25,5 +26,5 @@ compile job = do
   --liftIO $ putStrLn $ unlines $ map show $ elems $ translateAST ast
   let code = genAsm $ translateAST ast
   liftIO $ putStr $ unlines code
-  --_ <- liftIO $ readProcess "gcc" ["-x", "assembler", "-o", out job, "-"] (unlines code)
+  _ <- liftIO $ readProcess "gcc" ["-x", "assembler", "-o", out job, "-"] (unlines code)
   return ()
