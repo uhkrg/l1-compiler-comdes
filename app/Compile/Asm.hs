@@ -39,8 +39,9 @@ genStmt (v :<-: (val1, op, val2)) = unlines
     , "mov " ++ "%eax, " ++ genVar v
     ]
 genStmt (v :<-^: (Neg, val)) = unlines
-    [ "movl " ++ genVal val ++ ", " ++  genVar v
-    , "negl " ++ genVar v
+    [ "mov " ++ genVal val ++ ", %eax"
+    , "neg %eax"
+    , "mov %eax, " ++ genVar v
     ]
 
 genVar :: Var -> String
