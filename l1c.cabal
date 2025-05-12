@@ -34,9 +34,6 @@ executable l1c
                   Compile.AST,
                   Compile.Parser,
                   Compile.Semantic,
-                  Compile.InstrSel,
-                  Compile.Instr,
-                  Compile.VarAlloc,
                   Compile.Asm,
                   Compile.IR,
                   Error
