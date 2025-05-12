@@ -133,8 +133,9 @@ expr = makeExprParser expr' opTable <?> "expression"
 
 -- Lexer starts here, probably worth moving to its own file at some point
 sc :: Parser ()
-sc = L.space space1 lineComment blockComment
+sc = L.space spaceParser lineComment blockComment
   where
+    spaceParser = skipSome $ oneOf " \t\r\n"
     lineComment = L.skipLineComment "//"
     blockComment = L.skipBlockCommentNested "/*" "*/"
 
@@ -229,10 +230,10 @@ operator = lexeme ((:) <$> opStart <*> many opLetter)
 
 -- Identifiers
 identStart :: Parser Char
-identStart = letterChar <|> char '_'
+identStart = oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ['_']) <?> "letter or underscore"
 
 identLetter :: Parser Char
-identLetter = alphaNumChar <|> char '_'
+identLetter = oneOf (['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ ['_']) <?> "alphanumeric or underscore"
 
 identifier :: Parser String
 identifier = (lexeme .try) (p >>= check)
