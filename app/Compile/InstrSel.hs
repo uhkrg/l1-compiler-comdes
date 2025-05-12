@@ -67,7 +67,7 @@ genStmt (Ret expr _) = do
   emit Instruction {instr = "RET", args = EmptyArgument}
 
 genExpr :: Expr -> CodeGen Argument
-genExpr (IntExpr value _) = pure . ArgumentConstant . show $ value
+genExpr (IntExpr value _) = pure . ArgumentConstant $ value
 genExpr (Ident var _) = ArgumentVariable <$> lookupVar var
 genExpr (UnExpr op expr) = do
   arg <- genExpr expr
