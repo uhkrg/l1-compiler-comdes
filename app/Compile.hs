@@ -24,5 +24,6 @@ compile job = do
   ast <- parseAST $ src job
   semanticAnalysis ast
   let code = genAsm $ replaceVars $ codeGen ast
+  liftIO $ putStr $ unlines code
   _ <- liftIO $ readProcess "gcc" ["-x", "assembler", "-o", out job, "-"] (unlines code)
   return ()
