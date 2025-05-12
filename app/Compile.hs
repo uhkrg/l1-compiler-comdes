@@ -26,5 +26,5 @@ compile job = do
   --liftIO $ putStrLn $ unlines $ map show $ elems $ translateAST ast
   let code = genAsm $ translateAST ast
   liftIO $ putStr $ unlines code
-  _ <- liftIO $ readProcess "gcc" ["-x", "assembler", "-o", out job, "-"] (unlines code)
+  _ <- liftIO $ readProcess "gcc" ["-x", "assembler", "-nostdlib", "-o", out job, "-"] (unlines code)
   return ()
