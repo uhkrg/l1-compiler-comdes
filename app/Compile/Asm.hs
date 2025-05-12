@@ -4,7 +4,7 @@ import Compile.IR
 import Data.Array (elems)
 
 starterAsm :: [String]
-starterAsm = [".global main", ".global _main", ".text", "main:", "call _main", "mov %rax, %rdi", "mov $0x3C, %rax", "syscall", "_main:"]
+starterAsm = [".global _start", ".global main", ".text", "_start:", "call main", "mov %rax, %rdi", "mov $0x3C, %rax", "syscall", "main:"]
 
 genAsm :: IR -> [String]
 genAsm = (starterAsm ++) . map genStmt . elems
