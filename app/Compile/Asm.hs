@@ -73,9 +73,9 @@ genStmt locs (v :<-: (val1, Sub, val2)) =
         (isReg locs v || (isRegVar locs val1 && isRegVar locs val2)) && (genVar locs v /= genVal locs val1 || genVar locs v /= genVal locs val1)
     then
         if 
-            genVar locs v == genVal locs val2 
+            genVar locs v == genVal locs val1
         then
-            "subl " ++ genVal locs val1 ++ ", " ++ genVar locs v ++ "\n"
+            "subl " ++ genVal locs val2 ++ ", " ++ genVar locs v ++ "\n"
         else
             unlines
             [ "mov " ++ genVal locs val1 ++ ", " ++ genVar locs v
