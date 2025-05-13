@@ -20,13 +20,18 @@ genStmt locs (v :|<-: (Variable var)) =
     if 
         isReg locs var || isReg locs v 
     then 
-        "mov " ++ genVar locs var ++ ", " ++ genVar locs v 
+        if 
+            genVar locs var /= genVar locs v
+        then
+            "mov " ++ genVar locs var ++ ", " ++ genVar locs v  ++ "\n"
+        else
+            ""
     else 
         unlines
         [ "mov " ++  genVar locs var ++ ", %eax"
         , "mov " ++ "%eax, " ++ genVar locs v
         ]
-genStmt locs (v :|<-: val) = "movl " ++ genVal locs val ++ ", " ++ genVar locs v
+genStmt locs (v :|<-: val) = "movl " ++ genVal locs val ++ ", " ++ genVar locs v ++ "\n"
 genStmt locs (v :<-: (val1, Div, val2)) = 
     if 
         isRegVar locs val2
@@ -65,28 +70,34 @@ genStmt locs (v :<-: (val1, Mod, val2)) =
         ]
 genStmt locs (v :<-: (val1, op, val2)) = 
     if
-        (isReg locs v || (isRegVar locs val1 && isRegVar locs val2)) && (genVar locs v /= genVal locs val2)
+        isReg locs v || (isRegVar locs val1 && isRegVar locs val2)
     then
-        unlines
-        [ "mov " ++ genVal locs val1 ++ ", " ++ genVar locs v
-        , genOp op ++ ' ' : genVal locs val2 ++ ", " ++ genVar locs v
-        ]
+        if 
+            genVar locs v == genVal locs val2 
+        then
+            genOp op ++ ' ' : genVal locs val1 ++ ", " ++ genVar locs v ++ "\n"
+        else if
+            genVar locs v == genVal locs val1
+        then
+            genOp op ++ ' ' : genVal locs val2 ++ ", " ++ genVar locs v ++ "\n"
+        else
+            unlines
+            [ "mov " ++ genVal locs val1 ++ ", " ++ genVar locs v
+            , genOp op ++ ' ' : genVal locs val2 ++ ", " ++ genVar locs v
+            ]
     else
         unlines 
         [ "mov " ++ genVal locs val1 ++ ", %eax"
         , genOp op ++ ' ' : genVal locs val2 ++ ", %eax"
         , "mov " ++ "%eax, " ++ genVar locs v
         ]
-genStmt locs (v :<-^: (Neg, val)) = 
-    if
-        isReg locs v || isRegVar locs val
-    then
-        unlines
+genStmt locs (v :<-^: (Neg, val))
+    | genVar locs v == genVal locs val = "negl " ++ genVar locs v ++ "\n"
+    | isReg locs v || isRegVar locs val = unlines
         [ "mov " ++  genVal locs val ++ ", " ++ genVar locs v
         , "negl " ++ genVar locs v
         ]
-    else
-        unlines
+    | otherwise = unlines
         [ "mov " ++ genVal locs val ++ ", %eax"
         , "neg %eax"
         , "mov %eax, " ++ genVar locs v
