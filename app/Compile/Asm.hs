@@ -68,6 +68,25 @@ genStmt locs (v :<-: (val1, Mod, val2)) =
         , "idiv %ebx"
         , "mov %edx, " ++ genVar locs v
         ]
+genStmt locs (v :<-: (val1, Sub, val2)) = 
+    if
+        (isReg locs v || (isRegVar locs val1 && isRegVar locs val2)) && (genVar locs v /= genVal locs val1 || genVar locs v /= genVal locs val1)
+    then
+        if 
+            genVar locs v == genVal locs val2 
+        then
+            "subl " ++ genVal locs val1 ++ ", " ++ genVar locs v ++ "\n"
+        else
+            unlines
+            [ "mov " ++ genVal locs val1 ++ ", " ++ genVar locs v
+            , "sub " ++ genVal locs val2 ++ ", " ++ genVar locs v
+            ]
+    else
+        unlines 
+        [ "mov " ++ genVal locs val1 ++ ", %eax"
+        , "sub " ++ genVal locs val2 ++ ", %eax"
+        , "mov " ++ "%eax, " ++ genVar locs v
+        ]
 genStmt locs (v :<-: (val1, op, val2)) = 
     if
         isReg locs v || (isRegVar locs val1 && isRegVar locs val2)
@@ -114,7 +133,6 @@ genVal _ (Constant c) = '$' : show c
 
 genOp :: Op -> String
 genOp Add = "addl"
-genOp Sub = "subl"
 genOp Mul = "imull"
 genOp op = "unsupported bin op " ++ show op
 
