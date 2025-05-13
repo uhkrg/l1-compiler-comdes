@@ -1,4 +1,4 @@
-module Compile.IR (IR(..), IRStatement(..), ValueContainer(..), Var(..), Op(..), UnOp(..), translateAST) where
+module Compile.IR (IR, IRStatement(..), ValueContainer(..), Var(..), Op(..), UnOp(..), translateAST) where
 
 import Data.Array
 import qualified Compile.AST as AST
