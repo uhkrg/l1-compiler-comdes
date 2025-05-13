@@ -1,6 +1,7 @@
 module Compile.VarAlloc (allocVars, Location(..), LocationMapping) where
 
 import Compile.IR
+import Compile.LocalPredicates
 import Compile.Liveness
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -15,11 +16,12 @@ data Location = Register String | Memory Integer deriving Show
 type LocationMapping = Map.Map Integer Location
 
 allocVars :: IR -> LocationMapping
-allocVars ir = graphColoringToLocations convertToVarIdx $ greedyColoring graph $ simplicialEliminationOrdering graph
+allocVars ir = addUnlive $ graphColoringToLocations convertToVarIdx $ greedyColoring graph $ simplicialEliminationOrdering graph
     where
         liveness = calcLiveness ir
         (graph, nodeFromVertex, _vertexFromNode) = graphFromEdges $ livenessToEdges liveness
         convertToVarIdx = (\(a,_,_) -> a) . nodeFromVertex
+        addUnlive = flip Map.union $ Map.fromList [(v, Memory 4) | v <- Map.elems $ def $ readLocal ir]
 
 livenessToEdges :: Array Integer (Set.Set Integer) -> [(Integer, Integer, [Integer])]
 livenessToEdges = map (\(x, y) -> (x, x, Set.elems y)) . Map.assocs . foldl (Map.unionWith Set.union) Map.empty . fmap (\set -> Map.fromSet (`Set.delete` set) set)
@@ -53,5 +55,5 @@ graphColoringToLocations convertVertex = foldl (\r (v, c) -> Map.insert (convert
         colorToLocation 9  = Register "%r13d"
         colorToLocation 10 = Register "%r14d"
         colorToLocation 11 = Register "%r15d"
-        colorToLocation n = Memory $ (*4) . subtract 11 $ toInteger n
+        colorToLocation n = Memory $ (*4) . subtract 10 $ toInteger n
 
