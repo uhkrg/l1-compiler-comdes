@@ -27,7 +27,8 @@ executable l1c
                   parser-combinators,
                   transformers,
                   process,
-                  array
+                  array,
+                  PSQueue
     other-modules:
                   Args,
                   Compile,
@@ -37,6 +38,7 @@ executable l1c
                   Compile.Asm,
                   Compile.IR,
                   Compile.Liveness,
+                  Compile.VarAlloc,
                   Error
     hs-source-dirs:   app
     default-language: Haskell2010
