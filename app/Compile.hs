@@ -8,9 +8,9 @@ import Compile.Asm (genAsm)
 import Compile.Parser (parseAST)
 import Compile.Semantic (semanticAnalysis)
 import Compile.IR (translateAST)
+import Compile.VarAlloc (allocVars)
 import Control.Monad.IO.Class
 import Error (L1ExceptT)
-import Data.Array (elems)
 import System.Process (readProcess)
 
 data Job = Job
@@ -23,8 +23,9 @@ compile :: Job -> L1ExceptT ()
 compile job = do
   ast <- parseAST $ src job
   semanticAnalysis ast
-  --liftIO $ putStrLn $ unlines $ map show $ elems $ translateAST ast
-  let code = genAsm $ translateAST ast
+  let ir = translateAST ast
+  let locs = allocVars ir
+  let code = genAsm locs ir
   liftIO $ putStr $ unlines code
   _ <- liftIO $ readProcess "gcc" ["-x", "assembler", "-nostdlib", "-o", out job, "-"] (unlines code)
   return ()

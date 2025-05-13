@@ -1,4 +1,4 @@
-module Compile.VarAlloc (allocVars) where
+module Compile.VarAlloc (allocVars, Location(..), LocationMapping) where
 
 import Compile.IR
 import Compile.Liveness
@@ -12,7 +12,9 @@ import qualified Data.PSQueue as PQ
 
 data Location = Register String | Memory Integer deriving Show
 
-allocVars :: IR -> Map.Map Integer Location
+type LocationMapping = Map.Map Integer Location
+
+allocVars :: IR -> LocationMapping
 allocVars ir = graphColoringToLocations convertToVarIdx $ greedyColoring graph $ simplicialEliminationOrdering graph
     where
         liveness = calcLiveness ir
@@ -37,7 +39,7 @@ greedyColoring g = foldl (\c v -> Map.insert v (nextColor v c) c) Map.empty
     where
         nextColor v c = head $ [1..length (g ! v) + 1] \\ mapMaybe (c Map.!?) (g ! v)
 
-graphColoringToLocations :: (Vertex -> Integer) -> Map.Map Vertex Int -> Map.Map Integer Location
+graphColoringToLocations :: (Vertex -> Integer) -> Map.Map Vertex Int -> LocationMapping
 graphColoringToLocations convertVertex = foldl (\r (v, c) -> Map.insert (convertVertex v) (colorToLocation c) r) Map.empty . Map.assocs
     where
         colorToLocation 1  = Register "%ecx"
