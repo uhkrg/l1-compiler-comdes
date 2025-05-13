@@ -37,6 +37,7 @@ executable l1c
                   Compile.Semantic,
                   Compile.Asm,
                   Compile.IR,
+                  Compile.LocalPredicates,
                   Compile.Liveness,
                   Compile.VarAlloc,
                   Error
