@@ -65,7 +65,7 @@ genStmt locs (v :<-: (val1, Mod, val2)) =
         ]
 genStmt locs (v :<-: (val1, op, val2)) = 
     if
-        isReg locs v || (isRegVar locs val1 && isRegVar locs val2)
+        (isReg locs v || (isRegVar locs val1 && isRegVar locs val2)) && (genVar locs v /= genVal locs val2)
     then
         unlines
         [ "mov " ++ genVal locs val1 ++ ", " ++ genVar locs v
