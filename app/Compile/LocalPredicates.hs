@@ -11,25 +11,60 @@ data LocalPredicates = LocalPredicates
     } deriving Show
 
 readLocal :: IR -> LocalPredicates
-readLocal = combine . transpose . map (uncurry readStmt) . assocs 
+readLocal = calcPreds . assocs 
     where
-        transpose [] = ([], [],[])
-        transpose ((a, b, c): xs) = let (as, bs, cs) = transpose xs in (a:as, b:bs, c:cs)
-        combine (defs, uses, succs) = LocalPredicates (Map.fromList $ concat defs) (toArray uses) (toArray succs)
+        calcPreds asscs = LocalPredicates (calcDefs asscs) (calcUses asscs) (calcSucs asscs)
+        calcDefs = toMap . map (uncurry readDef)
+        calcUses = toArray . map (uncurry readUses)
+        calcSucs = toArray . map (uncurry readSuccs)
+        toMap = Map.fromList . concat
         toArray lst = array (1, toInteger $ length lst) lst
 
 
-readStmt :: Integer -> IRStatement -> ([(Integer, Integer)], (Integer, [Integer]), (Integer, [Integer]))
-readStmt idx (Ret (Constant _))                                         = ([],         (idx, []),     (idx, [])       )
-readStmt idx (Ret (Variable (Var v)))                                   = ([],         (idx, [v]),    (idx, [])       )
+readDef :: Integer -> IRStatement -> [(Integer, Integer)]
+readDef idx (Ret (Constant _))                                         = []
+readDef idx (Ret (Variable (Var v)))                                   = []
 
-readStmt idx (Var x :|<-: Constant _)                                   = ([(idx, x)], (idx, []),     (idx, [idx + 1]))
-readStmt idx (Var x :|<-: Variable (Var y))                             = ([(idx, x)], (idx, [y]),    (idx, [idx + 1]))
+readDef idx (Var x :|<-: Constant _)                                   = [(idx, x)]
+readDef idx (Var x :|<-: Variable (Var y))                             = [(idx, x)]
 
-readStmt idx (Var x :<-^: (_op, Constant _))                            = ([(idx, x)], (idx, []),     (idx, [idx + 1]))
-readStmt idx (Var x :<-^: (_op, Variable (Var y)))                      = ([(idx, x)], (idx, [y]),    (idx, [idx + 1]))
+readDef idx (Var x :<-^: (_op, Constant _))                            = [(idx, x)]
+readDef idx (Var x :<-^: (_op, Variable (Var y)))                      = [(idx, x)]
 
-readStmt idx (Var x :<-: (Constant _, _op, Constant _))                 = ([(idx, x)], (idx, []),     (idx, [idx + 1]))
-readStmt idx (Var x :<-: (Variable (Var y), _op, Constant _))           = ([(idx, x)], (idx, [y]),    (idx, [idx + 1]))
-readStmt idx (Var x :<-: (Constant _, _op, Variable (Var y)))           = ([(idx, x)], (idx, [y]),    (idx, [idx + 1]))
-readStmt idx (Var x :<-: (Variable (Var y), _op, Variable (Var z)))     = ([(idx, x)], (idx, [y, z]), (idx, [idx + 1]))
+readDef idx (Var x :<-: (Constant _, _op, Constant _))                 = [(idx, x)]
+readDef idx (Var x :<-: (Variable (Var y), _op, Constant _))           = [(idx, x)]
+readDef idx (Var x :<-: (Constant _, _op, Variable (Var y)))           = [(idx, x)]
+readDef idx (Var x :<-: (Variable (Var y), _op, Variable (Var z)))     = [(idx, x)]
+
+
+readUses :: Integer -> IRStatement -> (Integer, [Integer])
+readUses idx (Ret (Constant _))                                         = (idx, []) 
+readUses idx (Ret (Variable (Var v)))                                   = (idx, [v])
+
+readUses idx (Var x :|<-: Constant _)                                   = (idx, [])
+readUses idx (Var x :|<-: Variable (Var y))                             = (idx, [y])
+
+readUses idx (Var x :<-^: (_op, Constant _))                            = (idx, [])
+readUses idx (Var x :<-^: (_op, Variable (Var y)))                      = (idx, [y])
+
+readUses idx (Var x :<-: (Constant _, _op, Constant _))                 = (idx, [])
+readUses idx (Var x :<-: (Variable (Var y), _op, Constant _))           = (idx, [y])
+readUses idx (Var x :<-: (Constant _, _op, Variable (Var y)))           = (idx, [y])
+readUses idx (Var x :<-: (Variable (Var y), _op, Variable (Var z)))     = (idx, [y, z])
+
+
+readSuccs :: Integer -> IRStatement -> (Integer, [Integer])
+readSuccs idx (Ret (Constant _))                                         = (idx, [])
+readSuccs idx (Ret (Variable (Var v)))                                   = (idx, [])
+
+readSuccs idx (Var x :|<-: Constant _)                                   = (idx, [idx + 1])
+readSuccs idx (Var x :|<-: Variable (Var y))                             = (idx, [idx + 1])
+
+readSuccs idx (Var x :<-^: (_op, Constant _))                            = (idx, [idx + 1])
+readSuccs idx (Var x :<-^: (_op, Variable (Var y)))                      = (idx, [idx + 1])
+
+readSuccs idx (Var x :<-: (Constant _, _op, Constant _))                 = (idx, [idx + 1])
+readSuccs idx (Var x :<-: (Variable (Var y), _op, Constant _))           = (idx, [idx + 1])
+readSuccs idx (Var x :<-: (Constant _, _op, Variable (Var y)))           = (idx, [idx + 1])
+readSuccs idx (Var x :<-: (Variable (Var y), _op, Variable (Var z)))     = (idx, [idx + 1])
+
