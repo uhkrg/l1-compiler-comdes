@@ -70,7 +70,7 @@ genStmt locs (v :<-: (val1, Mod, val2)) =
         ]
 genStmt locs (v :<-: (val1, Sub, val2)) = 
     if
-        (isReg locs v || (isRegVar locs val1 && isRegVar locs val2)) && (genVar locs v /= genVal locs val1 || genVar locs v /= genVal locs val1)
+        (isReg locs v || (isRegVar locs val1 && isRegVar locs val2)) && (genVar locs v /= genVal locs val2)
     then
         if 
             genVar locs v == genVal locs val1
