@@ -87,27 +87,50 @@ genStmt locs (v :<-: (val1, Sub, val2)) =
         , "sub " ++ genVal locs val2 ++ ", %eax"
         , "mov " ++ "%eax, " ++ genVar locs v
         ]
-genStmt locs (v :<-: (val1, op, val2)) = 
+genStmt locs (v :<-: (val1, Add, val2)) = 
     if
         isReg locs v || (isRegVar locs val1 && isRegVar locs val2)
     then
         if 
             genVar locs v == genVal locs val2 
         then
-            genOp op ++ ' ' : genVal locs val1 ++ ", " ++ genVar locs v ++ "\n"
+            "add " ++ genVal locs val1 ++ ", " ++ genVar locs v ++ "\n"
         else if
             genVar locs v == genVal locs val1
         then
-            genOp op ++ ' ' : genVal locs val2 ++ ", " ++ genVar locs v ++ "\n"
+            "add " ++ genVal locs val2 ++ ", " ++ genVar locs v ++ "\n"
         else
             unlines
             [ "mov " ++ genVal locs val1 ++ ", " ++ genVar locs v
-            , genOp op ++ ' ' : genVal locs val2 ++ ", " ++ genVar locs v
+            , "add " ++ genVal locs val2 ++ ", " ++ genVar locs v
             ]
     else
         unlines 
         [ "mov " ++ genVal locs val1 ++ ", %eax"
-        , genOp op ++ ' ' : genVal locs val2 ++ ", %eax"
+        , "add " ++ genVal locs val2 ++ ", %eax"
+        , "mov " ++ "%eax, " ++ genVar locs v
+        ]
+genStmt locs (v :<-: (val1, Mul, val2)) = 
+    if
+        isReg locs v
+    then
+        if 
+            genVar locs v == genVal locs val2 
+        then
+            "imul " ++ genVal locs val1 ++ ", " ++ genVar locs v ++ "\n"
+        else if
+            genVar locs v == genVal locs val1
+        then
+            "imul " ++ genVal locs val2 ++ ", " ++ genVar locs v ++ "\n"
+        else
+            unlines
+            [ "mov " ++ genVal locs val1 ++ ", " ++ genVar locs v
+            , "imul " ++ genVal locs val2 ++ ", " ++ genVar locs v
+            ]
+    else
+        unlines 
+        [ "mov " ++ genVal locs val1 ++ ", %eax"
+        , "imul " ++ genVal locs val2 ++ ", %eax"
         , "mov " ++ "%eax, " ++ genVar locs v
         ]
 genStmt locs (v :<-^: (Neg, val))
@@ -130,11 +153,6 @@ genVar locs (Var v) = case locs ! v of
 genVal :: LocationMapping -> ValueContainer -> String
 genVal locs (Variable v) = genVar locs v
 genVal _ (Constant c) = '$' : show c
-
-genOp :: Op -> String
-genOp Add = "addl"
-genOp Mul = "imull"
-genOp op = "unsupported bin op " ++ show op
 
 isReg :: LocationMapping -> Var -> Bool
 isReg locs (Var v) = case locs ! v of
