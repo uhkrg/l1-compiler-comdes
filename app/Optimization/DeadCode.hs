@@ -8,11 +8,11 @@ import Compile.LocalPredicates
 import Optimization.Neededness
 
 removeDeadCode :: IR -> IR
-removeDeadCode ir = array ((,) 1 . toInteger . length $ withoutDeadCode) withoutDeadCode
+removeDeadCode ir = listArray ((,) 1 . toInteger . length $ withoutDeadCode) withoutDeadCode
     where
         succs = suc $ readLocal ir
         neededs = calcNeededness ir
-        withoutDeadCode = filter (uncurry $ isNotDead succs neededs) $ assocs ir
+        withoutDeadCode = map snd $ filter (uncurry $ isNotDead succs neededs) $ assocs ir
 
 
 
