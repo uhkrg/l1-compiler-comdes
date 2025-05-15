@@ -41,6 +41,7 @@ executable l1c
                   Compile.Liveness,
                   Compile.VarAlloc,
                   Compile.Unreachable,
+                  Optimization.Neededness,
                   Error
     hs-source-dirs:   app
     default-language: Haskell2010
