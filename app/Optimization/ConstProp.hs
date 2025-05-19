@@ -3,6 +3,8 @@ module Optimization.ConstProp (constantPropagate) where
 import qualified Data.Map as Map
 import qualified Data.Array as Array
 
+import Data.Bits ((.&.))
+
 import Compile.LocalPredicates
 import Compile.IR
 
@@ -55,11 +57,15 @@ constantFold (v :<-: (Constant 0, Sub, v2@(Variable _))) = v :<-^: (Neg, v2)
 constantFold (v :<-: (Constant 0, Sub, Constant c)) = v :|<-: Constant (-c)
 constantFold (v :<-: (other, Sub, Constant 0)) = v :|<-: other
 
-constantFold (v :<-: (Constant c1, op, Constant c2)) = v :|<-: Constant (apply op c1 c2)
+constantFold (v :<-: (Constant c1, op, Constant c2)) = v :|<-: Constant (keepInBounds $ apply op c1 c2)
 
 constantFold (v :<-^: (Neg, Constant c)) = v :|<-: Constant (-c)
 
 constantFold stmt = stmt
+
+
+keepInBounds :: Integer -> Integer
+keepInBounds = (.&. 0xffffffff)
 
 
 apply :: Op -> Integer -> Integer -> Integer
