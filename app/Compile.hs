@@ -18,6 +18,7 @@ import Data.Array (elems)
 --import Compile.Liveness (calcLiveness)
 --import Optimization.Neededness (calcNeededness)
 import Optimization.DeadCode (removeDeadCode)
+import Optimization.ConstProp (constantPropagate)
 
 data Job = Job
   { src :: FilePath,
@@ -35,7 +36,7 @@ compile job = do
   --liftIO $ putStrLn $ unlines $ map show $ elems ir''
   --liftIO $ print $ readLocal ir''
   --liftIO $ print $ calcNeededness ir''
-  let ir = removeDeadCode ir''
+  let ir = removeDeadCode $ constantPropagate ir''
   liftIO $ putStrLn $ unlines $ map show $ elems ir
   --liftIO $ print $ calcLiveness ir
   let locs = allocVars ir

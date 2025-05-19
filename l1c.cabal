@@ -43,6 +43,7 @@ executable l1c
                   Compile.Unreachable,
                   Optimization.Neededness,
                   Optimization.DeadCode,
+                  Optimization.ConstProp,
                   Error
     hs-source-dirs:   app
     default-language: Haskell2010
