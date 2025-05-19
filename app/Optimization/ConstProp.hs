@@ -3,7 +3,7 @@ module Optimization.ConstProp (constantPropagate) where
 import qualified Data.Map as Map
 import qualified Data.Array as Array
 
-import Data.Bits ((.&.))
+import Data.Int (Int32)
 
 import Compile.LocalPredicates
 import Compile.IR
@@ -67,7 +67,7 @@ constantFold stmt = stmt
 
 
 keepInBounds :: Integer -> Integer
-keepInBounds = (.&. 0xffffffff)
+keepInBounds v = toInteger (fromInteger v :: Int32)
 
 
 apply :: Op -> Integer -> Integer -> Integer
