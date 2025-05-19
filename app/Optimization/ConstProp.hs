@@ -38,6 +38,8 @@ replaceIfExists replacements var@(Variable (Var v))
 constantFold :: IRStatement -> IRStatement
 constantFold stmt@(_ :<-: (_, Div, Constant 0)) = stmt
 constantFold stmt@(_ :<-: (_, Mod, Constant 0)) = stmt
+constantFold stmt@(_ :<-: (Constant (-2147483648), Div, Constant (-1))) = stmt
+constantFold stmt@(_ :<-: (Constant (-2147483648), Mod, Constant (-1))) = stmt
 constantFold (v :<-: (Constant 0, Div, _)) = v :|<-: Constant 0
 constantFold (v :<-: (Constant 0, Mod, _)) = v :|<-: Constant 0
 
