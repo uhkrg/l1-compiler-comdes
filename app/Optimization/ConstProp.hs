@@ -62,8 +62,8 @@ constantFold stmt = stmt
 
 apply :: Op -> Integer -> Integer -> Integer
 apply Mul = (*)
-apply Div = div
-apply Mod = mod
+apply Div = quot
+apply Mod = rem
 apply Add = (+)
 apply Sub = (-)
 
